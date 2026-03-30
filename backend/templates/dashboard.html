@@ -1,0 +1,980 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Proctor AI - Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body { 
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; 
+            background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%);
+            color: #1f2937; 
+            padding: 40px 20px;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .card { 
+            background: white; 
+            border-radius: 12px; 
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+            overflow: hidden;
+            animation: slideUp 0.4s ease-out;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .header { 
+            padding: 28px 32px;
+            border-bottom: 1px solid #e5e7eb; 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            flex-wrap: wrap;
+            gap: 16px;
+            background: linear-gradient(135deg, #ffffff 0%, #f9fafb 100%);
+        }
+
+        .header-title {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        h1 { 
+            font-size: 1.8rem; 
+            font-weight: 700; 
+            color: #111827;
+            letter-spacing: -0.5px;
+        }
+
+        .badge {
+            display: inline-block;
+            background: #dbeafe;
+            color: #1e40af;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+
+        .badge.critical {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .controls { 
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .btn { 
+            padding: 10px 18px; 
+            border-radius: 8px; 
+            font-weight: 600; 
+            cursor: pointer; 
+            border: none; 
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .btn-refresh { 
+            background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+            color: white; 
+        }
+
+        .btn-pdf { 
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white; 
+        }
+
+        .btn-clear { 
+            background: linear-gradient(135deg, #fca5a5 0%, #ef4444 100%);
+            color: white;
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 16px;
+            margin-top: 20px;
+            padding: 0 32px;
+        }
+
+        .stat-card {
+            padding: 16px;
+            background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #1e40af;
+        }
+
+        .stat-label {
+            font-size: 0.8rem;
+            color: #0c4a6e;
+            margin-top: 4px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .table-wrapper {
+            overflow-x: auto;
+        }
+
+        table { 
+            width: 100%; 
+            border-collapse: collapse; 
+            text-align: left;
+        }
+
+        th { 
+            background: linear-gradient(135deg, #f9fafb 0%, #f3f4f6 100%);
+            padding: 16px 32px; 
+            font-size: 0.75rem; 
+            text-transform: uppercase;
+            color: #6b7280;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            border-bottom: 2px solid #e5e7eb;
+        }
+
+        td { 
+            padding: 16px 32px; 
+            border-top: 1px solid #e5e7eb; 
+            font-size: 0.95rem;
+        }
+
+        tr:hover {
+            background-color: #fafbfc;
+        }
+
+        tr:last-child td {
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .student-name {
+            font-weight: 600;
+            color: #111827;
+        }
+
+        .tag { 
+            display: inline-block;
+            background: linear-gradient(135deg, #e0e7ff 0%, #ddd6fe 100%);
+            color: #3730a3; 
+            padding: 6px 12px; 
+            border-radius: 6px; 
+            font-size: 0.8rem;
+            font-weight: 600;
+            letter-spacing: 0.3px;
+        }
+
+        .tag.critical {
+            background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
+            color: #991b1b;
+        }
+
+        .tag.warning {
+            background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+            color: #92400e;
+        }
+
+        .tag.info {
+            background: linear-gradient(135deg, #cffafe 0%, #a5f3fc 100%);
+            color: #164e63;
+        }
+
+        .timestamp {
+            color: #6b7280;
+            font-size: 0.9rem;
+        }
+
+        .url-cell {
+            font-family: 'Courier New', monospace;
+            font-size: 0.8rem;
+            color: #4b5563;
+            word-break: break-all;
+            max-width: 300px;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 32px;
+            color: #9ca3af;
+        }
+
+        .empty-icon {
+            font-size: 3rem;
+            margin-bottom: 12px;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #6b7280;
+        }
+
+        .loading-spinner {
+            display: inline-block;
+            width: 30px;
+            height: 30px;
+            border: 3px solid #e5e7eb;
+            border-top: 3px solid #6366f1;
+            border-radius: 50%;
+            animation: spin 0.6s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Session Accordion Styles */
+        .sessions-container {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            padding: 32px;
+        }
+
+        .session-card {
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            margin-bottom: 4px;
+        }
+
+        .session-card:hover {
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            border-color: #d1d5db;
+        }
+
+        .session-header {
+            background: linear-gradient(135deg, #f9fafb 0%, #f3f4f6 100%);
+            padding: 16px;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            user-select: none;
+            transition: background 0.3s ease;
+        }
+
+        .session-header:hover {
+            background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%);
+        }
+
+        .session-header.active {
+            background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+            border-bottom: 2px solid #3b82f6;
+        }
+
+        .session-info {
+            flex: 1;
+        }
+
+        .session-title {
+            font-weight: 600;
+            color: #111827;
+            margin-bottom: 4px;
+            font-size: 1rem;
+        }
+
+        .session-meta {
+            font-size: 0.85rem;
+            color: #6b7280;
+            display: flex;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+
+        .session-meta span {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .session-badge {
+            display: inline-block;
+            background: #ef4444;
+            color: white;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 0.85rem;
+        }
+
+        .session-toggle {
+            margin-left: 12px;
+            font-size: 1.2rem;
+            transition: transform 0.3s ease;
+            color: #6b7280;
+        }
+
+        .session-toggle.active {
+            transform: rotate(180deg);
+            color: #3b82f6;
+        }
+
+        .session-content {
+            display: none;
+            background: white;
+            border-top: 1px solid #e5e7eb;
+            padding: 0;
+        }
+
+        .session-content.active {
+            display: block;
+            animation: slideDown 0.3s ease-out;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                max-height: 0;
+            }
+            to {
+                opacity: 1;
+                max-height: 1000px;
+            }
+        }
+
+        .violations-list {
+            width: 100%;
+        }
+
+        .violation-row {
+            display: grid;
+            grid-template-columns: 1fr 2fr 1.5fr;
+            gap: 16px;
+            padding: 12px 16px;
+            border-bottom: 1px solid #e5e7eb;
+            align-items: center;
+            font-size: 0.9rem;
+        }
+
+        .violation-row:last-child {
+            border-bottom: none;
+        }
+
+        .violation-row:hover {
+            background-color: #f9fafb;
+        }
+
+        .violation-type {
+            font-weight: 600;
+            color: #374151;
+        }
+
+        .violation-time {
+            color: #6b7280;
+            font-size: 0.85rem;
+        }
+
+        .violation-url {
+            font-family: 'Courier New', monospace;
+            font-size: 0.8rem;
+            color: #4b5563;
+            word-break: break-word;
+        }
+
+        .violations-header {
+            display: grid;
+            grid-template-columns: 1fr 2fr 1.5fr;
+            gap: 16px;
+            padding: 12px 16px;
+            background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%);
+            border-bottom: 2px solid #d1d5db;
+            font-weight: 600;
+            font-size: 0.85rem;
+            color: #6b7280;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .violations-list {
+            width: 100%;
+        }
+
+        .no-print {
+            print-color-adjust: exact;
+            -webkit-print-color-adjust: exact;
+        }
+
+        @media print {
+            body {
+                background: white;
+                padding: 0;
+            }
+
+            .card {
+                box-shadow: none;
+                border: 1px solid #e5e7eb;
+            }
+
+            .controls {
+                display: none;
+            }
+
+            .btn {
+                display: none;
+            }
+
+            tr:hover {
+                background-color: transparent;
+            }
+        }
+        
+        /* Specialized rules for html2pdf generation */
+        .pdf-generation-active {
+            background-color: #ffffff !important;
+            color: #000000 !important;
+        }
+
+        .pdf-generation-active * {
+            color: #000000 !important;
+            text-shadow: none !important;
+        }
+
+        .pdf-generation-active .card,
+        .pdf-generation-active .header,
+        .pdf-generation-active .session-content,
+        .pdf-generation-active .session-header,
+        .pdf-generation-active .violations-header,
+        .pdf-generation-active .session-card,
+        .pdf-generation-active .violation-row {
+            background: #ffffff !important;
+            background-color: #ffffff !important;
+            border-color: #000000 !important;
+        }
+
+        .pdf-generation-active .badge {
+            color: #1e40af !important;
+            background: #dbeafe !important;
+            border: 1px solid #1e40af !important;
+        }
+        
+        .pdf-generation-active .session-card {
+            page-break-inside: avoid;
+            break-inside: avoid;
+            margin-bottom: 20px;
+            border: 2px solid #374151 !important;
+        }
+        
+        .pdf-generation-active .violation-row {
+            page-break-inside: avoid;
+            break-inside: avoid;
+            border-bottom: 1px solid #d1d5db !important;
+        }
+        
+        .pdf-generation-active .session-content {
+            display: block !important;
+            max-height: none !important;
+            opacity: 1 !important;
+        }
+
+        @media (max-width: 768px) {
+            body {
+                padding: 20px 10px;
+            }
+
+            .header {
+                flex-direction: column;
+                align-items: flex-start;
+                padding: 20px;
+            }
+
+            h1 {
+                font-size: 1.4rem;
+            }
+
+            .stats {
+                grid-template-columns: repeat(2, 1fr);
+                padding: 0 20px;
+                margin-top: 16px;
+            }
+
+            th, td {
+                padding: 12px;
+                font-size: 0.85rem;
+            }
+
+            .url-cell {
+                max-width: 150px;
+            }
+
+            .tag {
+                font-size: 0.7rem;
+                padding: 4px 8px;
+            }
+        }
+
+        @media (prefers-color-scheme: dark) {
+            body {
+                background: linear-gradient(135deg, #111827 0%, #1f2937 100%);
+            }
+
+            .card {
+                background: #1f2937;
+                box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+            }
+
+            .header {
+                background: linear-gradient(135deg, #1f2937 0%, #111827 100%);
+                border-bottom-color: #374151;
+            }
+
+            h1 {
+                color: #f9fafb;
+            }
+
+            th {
+                background: linear-gradient(135deg, #374151 0%, #1f2937 100%);
+                color: #d1d5db;
+            }
+
+            td {
+                border-top-color: #374151;
+                color: #e5e7eb;
+            }
+
+            .student-name {
+                color: #f9fafb;
+            }
+
+            tr:hover {
+                background-color: #374151;
+            }
+
+            .timestamp {
+                color: #9ca3af;
+            }
+
+            .url-cell {
+                color: #9ca3af;
+            }
+
+            .badge, .stat-card {
+                background-color: #374151;
+                color: #bfdbfe;
+            }
+
+            .empty-state,
+            .loading {
+                color: #9ca3af;
+            }
+
+            /* Dark mode for accordion */
+            .session-card {
+                border-color: #374151;
+            }
+
+            .session-header {
+                background: linear-gradient(135deg, #374151 0%, #1f2937 100%);
+            }
+
+            .session-header:hover {
+                background: linear-gradient(135deg, #4b5563 0%, #374151 100%);
+            }
+
+            .session-header.active {
+                background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 100%);
+                border-bottom-color: #60a5fa;
+            }
+
+            .session-title {
+                color: #f3f4f6;
+            }
+
+            .session-meta {
+                color: #d1d5db;
+            }
+
+            .session-content {
+                background: #111827;
+                border-top-color: #374151;
+            }
+
+            .violation-row {
+                border-bottom-color: #374151;
+            }
+
+            .violation-row:hover {
+                background-color: #374151;
+            }
+
+            .violation-type {
+                color: #f3f4f6;
+            }
+
+            .violation-time {
+                color: #9ca3af;
+            }
+
+            .violation-url {
+                color: #9ca3af;
+            }
+
+            .violations-header {
+                background: linear-gradient(135deg, #374151 0%, #1f2937 100%);
+                border-bottom-color: #4b5563;
+                color: #d1d5db;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="card" id="report-content">
+        <div class="header no-print">
+            <div class="header-title">
+                <h1>Proctor AI Dashboard</h1>
+                <span class="badge">Session Monitor</span>
+            </div>
+            <div class="controls"> 
+                <button class="btn btn-refresh" onclick="location.reload()" title="Refresh data">
+                    🔄 Refresh
+                </button>
+                <button class="btn btn-pdf" onclick="downloadPDF()" title="Download PDF Report">
+                    📄 Download PDF
+                </button>
+                <button class="btn btn-clear" onclick="clearData()" title="Delete all logs">
+                    🗑️ Clear All
+                </button>
+            </div>
+        </div>
+
+        <div class="stats" id="statsContainer">
+            <div class="stat-card">
+                <div class="stat-value" id="totalSessions">0</div>
+                <div class="stat-label">Sessions</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="totalViolations">0</div>
+                <div class="stat-label">Total Violations</div>
+            </div>
+            <div class="stat-card" style="background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);">
+                <div class="stat-value" id="totalStudents" style="color: #1e40af;">0</div>
+                <div class="stat-label" style="color: #1e3a8a;">Students</div>
+            </div>
+        </div>
+
+        <!-- Sessions Accordion -->
+        <div id="sessionsContainer" class="sessions-container">
+            <div class="loading">
+                <div class="loading-spinner"></div>
+                <p style="margin-top: 12px;">Loading sessions...</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+    <script id="logsData" type="application/json">{{ logs | safe }}</script>
+    <script>
+    /**
+     * Load session data from script tag
+     */
+    const logsScript = document.getElementById('logsData');
+    const sessionData = logsScript ? JSON.parse(logsScript.textContent) : [];
+
+    /**
+     * Render dashboard with session accordion
+     */
+    function renderDashboard() {
+        const container = document.getElementById('sessionsContainer');
+        
+        if (!sessionData || sessionData.length === 0) {
+            container.innerHTML = `
+                <div class="empty-state">
+                    <div class="empty-icon">📋</div>
+                    <p>No exam sessions recorded yet</p>
+                    <p style="font-size: 0.85rem; margin-top: 8px;">Sessions will appear here when exams are started</p>
+                </div>
+            `;
+            updateStats(0, 0, new Set());
+            return;
+        }
+
+        // Calculate statistics
+        let totalViolations = 0;
+        const uniqueStudents = new Set();
+        
+        sessionData.forEach(session => {
+            totalViolations += session.violations ? session.violations.length : 0;
+            if (session.student_name) uniqueStudents.add(session.student_name);
+        });
+
+        updateStats(sessionData.length, totalViolations, uniqueStudents);
+
+        // Render accordion sessions
+        container.innerHTML = sessionData.map((session, index) => {
+            const shortenedId = session.session_id.substring(0, 8).toUpperCase();
+            const violationCount = session.violations ? session.violations.length : 0;
+            const startTime = new Date(session.start_time).toLocaleString();
+            const endTime = session.end_time ? new Date(session.end_time).toLocaleString() : 'In Progress';
+            
+            return `
+                <div class="session-card">
+                    <div class="session-header">
+                        <div class="session-info">
+                            <div class="session-title">
+                                Session #${shortenedId}
+                                <span class="session-badge">${violationCount} violations</span>
+                            </div>
+                            <div class="session-meta">
+                                <span>📆 ${startTime}</span>
+                                <span>👤 ${escapeHtml(session.student_name || 'Unknown')}</span>
+                            </div>
+                        </div>
+                        <div class="session-toggle">▶</div>
+                    </div>
+                    <div class="session-content">
+                        ${renderViolations(session.violations || [])}
+                    </div>
+                </div>
+            `;
+        }).join('');
+
+        // Attach event listeners
+        document.querySelectorAll('.session-header').forEach(header => {
+            header.addEventListener('click', function(e) {
+                if (e.target !== this && e.target.closest('a')) return;
+                toggleSession(this);
+            });
+        });
+    }
+
+    /**
+     * Toggle session expansion
+     */
+    function toggleSession(headerElement) {
+        const isActive = headerElement.classList.contains('active');
+        
+        // Close all other sessions
+        document.querySelectorAll('.session-header').forEach(h => {
+            h.classList.remove('active');
+            h.nextElementSibling.classList.remove('active');
+            h.querySelector('.session-toggle').classList.remove('active');
+        });
+
+        // Toggle current session
+        if (!isActive) {
+            headerElement.classList.add('active');
+            headerElement.nextElementSibling.classList.add('active');
+            headerElement.querySelector('.session-toggle').classList.add('active');
+        }
+    }
+
+    /**
+     * Render violations for a session with table-like headers
+     */
+    function renderViolations(violations) {
+        if (!violations || violations.length === 0) {
+            return '<div class="empty-state" style="padding: 20px;"><p>No violations in this session</p></div>';
+        }
+
+        const rows = violations.map((violation, idx) => {
+            // Handle both array format [type, timestamp, url] and object format
+            const violationType = Array.isArray(violation) ? violation[0] : violation.type;
+            const violationTime = Array.isArray(violation) ? violation[1] : violation.timestamp;
+            const violationUrl = Array.isArray(violation) ? violation[2] : violation.url;
+            
+            const timeStr = new Date(violationTime).toLocaleTimeString();
+            const dateStr = new Date(violationTime).toLocaleDateString();
+            const typeStr = escapeHtml(violationType);
+            const urlStr = escapeHtml(violationUrl);
+
+            return `
+                <div class="violation-row">
+                    <div class="violation-type">⚠️ ${typeStr}</div>
+                    <div class="violation-time">${dateStr} ${timeStr}</div>
+                    <div class="violation-url" title="${urlStr}">🔗 ${urlStr}</div>
+                </div>
+            `;
+        }).join('');
+
+        const header = `
+            <div class="violations-header">
+                <div style="font-weight: 600; color: #374151;">Violation Type</div>
+                <div style="font-weight: 600; color: #374151;">Timestamp</div>
+                <div style="font-weight: 600; color: #374151;">Page URL</div>
+            </div>
+        `;
+
+        return `<div class="violations-list">${header}${rows}</div>`;
+    }
+
+    /**
+     * Update statistics
+     */
+    function updateStats(sessions, totalViolations, uniqueStudents) {
+        document.getElementById('totalSessions').textContent = sessions;
+        document.getElementById('totalViolations').textContent = totalViolations;
+        document.getElementById('totalStudents').textContent = uniqueStudents.size;
+    }
+
+    /**
+     * Escape HTML special characters
+     */
+    function escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+
+    /**
+     * Download as PDF
+     */
+    function downloadPDF() {
+        const element = document.getElementById('report-content');
+        const controls = document.querySelector('.controls');
+        
+        // Hide controls during PDF generation
+        controls.style.display = 'none';
+
+        // Expand all sessions temporarily for the PDF
+        const previouslyActive = [];
+        document.querySelectorAll('.session-header').forEach((h, index) => {
+            if (h.classList.contains('active')) {
+                previouslyActive.push(index);
+            } else {
+                h.classList.add('active');
+                h.nextElementSibling.classList.add('active');
+                h.querySelector('.session-toggle').classList.add('active');
+            }
+        });
+
+        // Add a class to apply specific PDF rendering styles
+        document.body.classList.add('pdf-generation-active');
+
+        // Wait for accordion CSS animations (0.3s) before taking a snapshot
+        setTimeout(() => {
+            const options = {
+                margin: [15, 10, 15, 10], // top, right, bottom, left
+                filename: `Proctor_Report_${new Date().toLocaleDateString()}.pdf`,
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { scale: 2 },
+                jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+                pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
+            };
+
+            html2pdf().set(options).from(element).save().then(() => {
+                restorePDFForm();
+            }).catch(err => {
+                console.error('PDF generation error:', err);
+                restorePDFForm();
+                alert('Failed to generate PDF');
+            });
+        }, 400); // 400ms delay to ensure DOM has fully painted the expanded accordions
+        
+        function restorePDFForm() {
+            document.body.classList.remove('pdf-generation-active');
+            controls.style.display = 'flex';
+            document.querySelectorAll('.session-header').forEach((h, index) => {
+                if (!previouslyActive.includes(index)) {
+                    h.classList.remove('active');
+                    h.nextElementSibling.classList.remove('active');
+                    h.querySelector('.session-toggle').classList.remove('active');
+                }
+            });
+        }
+    }
+
+    /**
+     * Clear all data with confirmation
+     */
+    function clearData() {
+        if (confirm("Are you absolutely sure? This will permanently delete all violation records.")) {
+            fetch('/clear', { 
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' }
+            })
+            .then(res => {
+                if (res.ok) {
+                    location.reload();
+                } else {
+                    alert('Failed to clear data');
+                }
+            })
+            .catch(err => {
+                console.error('Error clearing data:', err);
+                alert('Error clearing data');
+            });
+        }
+    }
+
+    // Render on load
+    document.addEventListener('DOMContentLoaded', renderDashboard);
+
+    // Auto-refresh every 5 seconds by reloading page data
+    setInterval(() => {
+        fetch('/dashboard')
+            .then(response => response.text())
+            .then(html => {
+                // Parse the new HTML to extract updated session data
+                const parser = new DOMParser();
+                const newDoc = parser.parseFromString(html, 'text/html');
+                const newDataScript = newDoc.getElementById('logsData');
+                if (newDataScript) {
+                    const updatedData = JSON.parse(newDataScript.textContent);
+                    if (JSON.stringify(updatedData) !== JSON.stringify(sessionData)) {
+                        // Data has changed, update global and re-render
+                        sessionData.length = 0;
+                        updatedData.forEach(item => sessionData.push(item));
+                        renderDashboard();
+                    }
+                }
+            })
+            .catch(err => {
+                // Silent fail - dashboard already has current data
+                console.debug('Auto-refresh skipped:', err.message);
+            });
+    }, 5000);
+</script>
+
+</body>
+</html>

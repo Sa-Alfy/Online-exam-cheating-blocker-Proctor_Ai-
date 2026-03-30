@@ -3,10 +3,9 @@
  * Professional exam monitoring with session management
  */
 
-// Backend URL can be configured per deployment, so public repos are safe
-// and each user can run their own server without leaking your production server.
-const isDevMode = !('update_url' in chrome.runtime.getManifest());
-const DEFAULT_BACKEND_URL = isDevMode ? 'http://127.0.0.1:5000' : 'https://saalfy.pythonanywhere.com';
+// Backend URL MUST be strictly hardcoded for production distribution manually
+// Since students install via ZIP/CRX, they appear as "devs", so we cannot use dynamic checking.
+const DEFAULT_BACKEND_URL = 'https://saalfy.pythonanywhere.com';
 const STORAGE_KEY_BACKEND_URL = 'backendUrl';
 
 const CONFIG = {
@@ -111,7 +110,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 
     if (message.action === 'LOG_VIOLATION' || message.action === 'LOG_VIOLATION_V1') {
       // Check if exam is active
-      chrome.storage.local.get(["isExamActive", "studentName", "studentId"], (result) => {
+      chrome.storage.local.get(["isExamActive", "studentName", "studentId", "sessionId"], (result) => {
         try {
           if (chrome.runtime.lastError) {
             console.error('[Proctor AI] Storage error:', chrome.runtime.lastError);
@@ -152,7 +151,8 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
                 student_name: studentIdentity,
                 violation_type: message.type,
                 timestamp: new Date().toLocaleString(),
-                url: message.url
+                url: message.url,
+                session_id: result.sessionId || null
               })
             })
             .then(response => {

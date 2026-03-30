@@ -7,8 +7,7 @@
 // configured by the deployer. Students cannot bypass proctoring because
 // the content script and background worker enforce exam-active checks.
 const STORAGE_KEY_BACKEND_URL = 'backendUrl';
-const isDevMode = !('update_url' in chrome.runtime.getManifest());
-const FALLBACK_BACKEND_URL = isDevMode ? 'http://127.0.0.1:5000' : 'https://saalfy.pythonanywhere.com';
+const FALLBACK_BACKEND_URL = 'https://saalfy.pythonanywhere.com';
 
 /**
  * Read the backend URL from chrome.storage.local (same source as background.js)
@@ -122,11 +121,13 @@ async function startExam() {
     showMessage('<span class="loading-spinner"></span>Starting exam...', 'loading');
 
     // Send START event to backend
-    await sendSessionEvent('START', examUrl);
+    const sessionResponse = await sendSessionEvent('START', examUrl);
+    const sessionId = sessionResponse && sessionResponse.session_id ? sessionResponse.session_id : null;
 
     // Save exam state to local storage
     const examState = {
       isExamActive: true,
+      sessionId: sessionId,
       examOriginUrl: examUrl,
       studentName: studentName,
       studentId: studentId,

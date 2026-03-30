@@ -42,7 +42,15 @@ class Config:
     MAX_CONTENT_LENGTH = int(os.getenv('MAX_CONTENT_LENGTH', 16 * 1024 * 1024))  # 16MB
     
     # CORS
-    CORS_ORIGINS = os.getenv('CORS_ORIGINS', 'http://127.0.0.1:*,http://localhost:*').split(',')
+    raw_origins = os.getenv('CORS_ORIGINS', 'http://127.0.0.1:*,http://localhost:*').split(',')
+    CORS_ORIGINS = []
+    for origin in raw_origins:
+        origin = origin.strip()
+        if origin == 'chrome-extension://*':
+            import re
+            CORS_ORIGINS.append(re.compile(r"chrome-extension://.*"))
+        else:
+            CORS_ORIGINS.append(origin)
     
     # Logging
     LOG_LEVEL = os.getenv('LOG_LEVEL', 'INFO')

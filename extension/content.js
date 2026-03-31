@@ -60,6 +60,23 @@ function shouldLogViolation() {
 }
 
 let extensionInvalidated = false;
+let isExamActive = false; // Local state to track exam activity
+
+// Initialize exam state from storage
+chrome.storage.local.get(["isExamActive"], (result) => {
+  if (result.isExamActive) {
+    isExamActive = true;
+    console.log('[Proctor AI] Initial state: Exam Active');
+  }
+});
+
+// Update state when storage changes (e.g. from popup)
+chrome.storage.onChanged.addListener((changes, areaName) => {
+  if (areaName === 'local' && changes.isExamActive) {
+    isExamActive = !!changes.isExamActive.newValue;
+    console.log(`[Proctor AI] Exam state changed: ${isExamActive ? 'ACTIVE' : 'INACTIVE'}`);
+  }
+});
 
 /**
  * Sends a violation signal to the background.js service worker
@@ -146,6 +163,8 @@ const debouncedMouseLeave = debounce(() => notifyProctor("Mouse Left Viewport"),
 
 // 1. Detect Tab Switching (The most reliable way)
 document.addEventListener('visibilitychange', () => {
+    if (!isExamActive) return;
+
     try {
         if (document.hidden) {
             debouncedTabSwitch();
@@ -157,6 +176,8 @@ document.addEventListener('visibilitychange', () => {
 
 // 2. Detect Focus Loss (Alt-Tab, clicking the address bar, or opening another app)
 window.addEventListener('blur', () => {
+    if (!isExamActive) return;
+
     try {
         debouncedFocusLoss();
     } catch (error) {
@@ -166,6 +187,8 @@ window.addEventListener('blur', () => {
 
 // 3. Detect Fullscreen Exit
 document.addEventListener('fullscreenchange', () => {
+    if (!isExamActive) return;
+
     try {
         if (!document.fullscreenElement) {
             debouncedFullscreenExit();
@@ -177,23 +200,29 @@ document.addEventListener('fullscreenchange', () => {
 
 // 4. Detect Copy/Paste/Drag Attempts
 document.addEventListener('copy', () => {
+    if (!isExamActive) return;
     try { notifyProctor("Copy Attempted"); } catch (e) { console.error(e); }
 }, { passive: true });
 
 document.addEventListener('paste', () => {
+    if (!isExamActive) return;
     try { notifyProctor("Paste Attempted"); } catch (e) { console.error(e); }
 }, { passive: true });
 
 document.addEventListener('dragstart', () => {
+    if (!isExamActive) return;
     try { notifyProctor("Text/Image Drag Attempted"); } catch (e) { console.error(e); }
 }, { passive: true });
 
 document.addEventListener('drop', () => {
+    if (!isExamActive) return;
     try { notifyProctor("Content Drop Attempted"); } catch (e) { console.error(e); }
 }, { passive: true });
 
 // 5. Detect when the page is being closed or navigated away
 window.addEventListener('beforeunload', () => {
+    if (!isExamActive) return;
+
     try {
         notifyProctor("Navigating away from Exam Page");
     } catch (error) { }
@@ -201,6 +230,8 @@ window.addEventListener('beforeunload', () => {
 
 // 6. Block DevTools & Context Menu, Monitor Keyboard Shortcuts
 document.addEventListener('contextmenu', (e) => {
+    if (!isExamActive) return; // Only block if exam is active
+
     try {
         e.preventDefault(); // Block right click
         notifyProctor("Context Menu (Right Click) Blocked");
@@ -208,6 +239,8 @@ document.addEventListener('contextmenu', (e) => {
 });
 
 document.addEventListener('keydown', (e) => {
+    if (!isExamActive) return; // Only block if exam is active
+
     try {
         const key = e.key.toLowerCase();
         
@@ -240,6 +273,8 @@ document.addEventListener('keydown', (e) => {
 
 // 7. Monitor Mouse Leaving the Window
 document.addEventListener('mouseleave', (e) => {
+    if (!isExamActive) return;
+
     try {
         if (e.clientY <= 0 || e.clientX <= 0 || (e.clientX >= window.innerWidth || e.clientY >= window.innerHeight)) {
             debouncedMouseLeave();
@@ -250,6 +285,8 @@ document.addEventListener('mouseleave', (e) => {
 // 8. Periodic URL and Focus Check (Bulletproof loop)
 let lastCheckedUrl = window.location.href;
 setInterval(() => {
+    if (!isExamActive) return; // Silent if no exam
+
     // 1. URL change check
     const currentUrl = window.location.href;
     if (currentUrl !== lastCheckedUrl) {

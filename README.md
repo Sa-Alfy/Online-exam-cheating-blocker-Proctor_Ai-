@@ -175,28 +175,18 @@ CREATE TABLE violations (
 
 ---
 
-## 📝 Recent Updates (v1.1)
+### Recent Updates (v1.2) - 2026-03-31
 
-### Features Added
-- ✅ Session-based monitoring with UUID tracking
-- ✅ Accordion-style dashboard with expandable sessions
-- ✅ Violation details display (type, time, URL)
-- ✅ Auto-refresh dashboard (5 second interval)
-- ✅ Full dark mode support with theme colors
+#### Bug Fixes 🐛
+- ✅ **Fixed F12 & Right Click Blocking**: Resolved a critical bug where DevTools and Context Menu were blocked globally even when an exam was not active. 
+- ✅ **State Awareness**: Monitoring features now correctly respect the `isExamActive` state and remain dormant until an exam session is started.
 
-### Security Improvements
-- ✅ Removed backend URL configuration UI
-- ✅ Hardcoded production server only
-- ✅ Removed local override options
-- ✅ Type annotations for Pylance compatibility
-
-### Code Quality
-- ✅ Fixed Pylance type checking errors
-- ✅ Enhanced error messages and logging
-- ✅ Improved database schema with session tracking
-- ✅ Better code documentation
+#### Documentation 📑
+- ✅ **Release Roadmap**: Added `final_push.md` outlining the path to production.
 
 ---
+
+## 📝 Previous Updates (v1.1)
 
 ## 📚 Documentation
 

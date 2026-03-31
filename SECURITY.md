@@ -1,4 +1,4 @@
-# Security Checklist Before Making Repo Public
+﻿# Security Checklist Before Making Repo Public
 
 This checklist ensures your repository is secure and ready to be made public on GitHub.
 
@@ -48,7 +48,7 @@ Result: ✅ **PASS** - Only environment variable references found
 ### No Hardcoded URLs (except examples)
 ```bash
 # Check for hardcoded backend URLs
-grep -r "saalfy\|localhost\|127.0.0.1" extension/*.js
+grep -r "your-id\|localhost\|127.0.0.1" extension/*.js
 # Should return empty (only config.js and manifest set these)
 
 grep -r "localhost" . --exclude-dir=.git | grep -v ".env.example" | grep -v "config.js" | grep -v "README" | grep -v "DEPLOYMENT"
@@ -59,7 +59,7 @@ Result: ✅ **PASS** - No hardcoded backend URLs in active code
 
 ### Extension Changes
 - [ ] `extension/background.js`:
-  - [ ] Removed hardcoded `https://saalfy.pythonanywhere.com`
+  - [ ] Removed hardcoded `https://your-id.pythonanywhere.com`
   - [ ] Uses `getDefaultBackendUrl()` function
   - [ ] Reads from chrome.storage.local
 
@@ -104,7 +104,7 @@ Result: ✅ **PASS** - No hardcoded backend URLs in active code
 
 - [ ] `QUICKSTART.md`:
   - [ ] Updated if needed with build step
-  - [ ] Only references to saalfy are in examples/documentation
+  - [ ] Only references to your-id are in examples/documentation
 
 - [ ] `backend/.env.example`:
   - [ ] Documents all required variables
@@ -136,8 +136,8 @@ ls -la extension/config.js     # Initial config (will be regenerated on build)
 If you had previous values committed:
 
 ```bash
-# Check for any old saalfy references in git history
-git log --all --source --full-history -S "saalfy" -- .
+# Check for any old your-id references in git history
+git log --all --source --full-history -S "your-id" -- .
 
 # If found, consider a fresh clean start or using BFG Repo Cleaner
 # See: https://rtyley.github.io/bfg-repo-cleaner/
@@ -232,3 +232,4 @@ git push origin main
 - **Build System Help**: See comments in build-extension.py and build-extension.js
 - **Deployment Help**: See DEPLOYMENT.md (detailed step-by-step guide)
 - **Configuration Help**: See .env.example files and configuration sections in README.md
+

@@ -1,4 +1,4 @@
-"""
+﻿"""
 Configuration module for Proctor AI Backend
 Centralized settings management
 """
@@ -23,7 +23,7 @@ class Config:
     TESTING = False
     SECRET_KEY = os.getenv('SECRET_KEY', 'dev-secret-key-change-in-production')
     
-    # Deployment detection (replaces hardcoded /home/saalfy check)
+    # Deployment detection (replaces hardcoded /home/your-id check)
     # Set DEPLOY_ENV=pythonanywhere in your PythonAnywhere .env
     DEPLOY_ENV = os.getenv('DEPLOY_ENV', 'local')
     DATA_DIR = os.getenv('DATA_DIR', os.path.dirname(os.path.abspath(__file__)))
@@ -137,3 +137,4 @@ DB_SCHEMA_VERSION = '1.0'
 
 API_VERSION = 'v1'
 API_PREFIX = f'/api/{API_VERSION}'
+

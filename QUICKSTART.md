@@ -1,4 +1,4 @@
-# Proctor AI - Quick Start Guide
+﻿# Proctor AI - Quick Start Guide
 
 ## ⚡ Setup (5 Minutes)
 
@@ -84,7 +84,7 @@ Server ready! Waiting for violations...
 
 ## 🌐 Production Deployment (PythonAnywhere)
 
-**Live Server**: `https://saalfy.pythonanywhere.com`
+**Live Server**: `https://your-id.pythonanywhere.com`
 
 ### How It Works:
 - Backend is deployed on PythonAnywhere
@@ -102,13 +102,13 @@ Server ready! Waiting for violations...
    ```
 
 2. **Reload on PythonAnywhere**
-   - Go to: https://www.pythonanywhere.com/user/saalfy/webapps/
-   - Click your web app (saalfy.pythonanywhere.com)
+   - Go to: https://www.pythonanywhere.com/user/your-id/webapps/
+   - Click your web app (your-id.pythonanywhere.com)
    - Click "Reload" button (green circular icon)
    - Wait 30 seconds for restart
 
 3. **Test production**
-   - Open: `https://saalfy.pythonanywhere.com/dashboard`
+   - Open: `https://your-id.pythonanywhere.com/dashboard`
    - Should see all recorded violations
 
 ---
@@ -270,3 +270,4 @@ taskkill /PID <PID> /F
 **Happy Proctoring! 📚**
 
 Last Updated: February 28, 2026
+

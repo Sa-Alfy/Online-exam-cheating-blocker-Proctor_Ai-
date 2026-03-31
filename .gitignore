@@ -59,3 +59,6 @@ Thumbs.db
 
 # Node modules (for extension maybe)
 extension/node_modules/
+
+# Extension Auto-generated Config
+extension/config.js

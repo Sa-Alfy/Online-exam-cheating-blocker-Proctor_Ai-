@@ -20,7 +20,7 @@ def load_env_file(env_path):
     """Load environment variables from .env file"""
     env_vars = {}
     if env_path.exists():
-        with open(env_path, 'r') as f:
+        with open(env_path, 'r', encoding='utf-8-sig') as f:
             for line in f:
                 line = line.strip()
                 if line and not line.startswith('#'):
@@ -30,7 +30,7 @@ def load_env_file(env_path):
     return env_vars
 
 def main():
-    print("🔨 Building extension configuration...")
+    print("Building extension configuration...")
     
     # Paths
     project_root = Path(__file__).parent
@@ -49,11 +49,11 @@ def main():
     
     # Load from .env file
     if env_path.exists():
-        print(f"📁 Loading from {env_path}")
+        print(f"Loading from {env_path}")
         env_vars = load_env_file(env_path)
         config.update(env_vars)
     else:
-        print(f"⚠️  .env file not found at {env_path}, using defaults")
+        print(f"Warning: .env file not found at {env_path}, using defaults")
     
     # Override with environment variables (takes precedence)
     if 'BACKEND_URL' in os.environ:
@@ -63,14 +63,14 @@ def main():
     
     # Validate backend URL
     if not config.get('BACKEND_URL'):
-        print("❌ Error: BACKEND_URL not configured")
+        print("Error: BACKEND_URL not configured")
         sys.exit(1)
     
     # Remove trailing slash if present
     config['BACKEND_URL'] = config['BACKEND_URL'].rstrip('/')
     
-    print(f"✓ Backend URL: {config['BACKEND_URL']}")
-    print(f"✓ Environment: {config['ENV_MODE']}")
+    print(f"Backend URL: {config['BACKEND_URL']}")
+    print(f"Environment: {config['ENV_MODE']}")
     
     # Generate config.js
     config_content = f"""/**
@@ -95,31 +95,31 @@ if (typeof module !== 'undefined' && module.exports) {{
 }}
 """
     
-    with open(config_output_path, 'w') as f:
+    with open(config_output_path, 'w', encoding='utf-8') as f:
         f.write(config_content)
-    print(f"✅ Generated {config_output_path}")
+    print(f"Generated {config_output_path}")
     
     # Update background.js to inject the backend URL for service worker
     try:
-        with open(background_js_path, 'r') as f:
+        with open(background_js_path, 'r', encoding='utf-8-sig') as f:
             background_js = f.read()
         
         # Replace the getDefaultBackendUrl function to return the configured URL
+        # Supports both one-line () => 'url' and multi-line () => { ... } formats
         new_get_default = f"const getDefaultBackendUrl = () => '{config['BACKEND_URL']}';"
         
-        # Find and replace the function definition
         background_js = re.sub(
-            r"const getDefaultBackendUrl = \(\) => \{[\s\S]*?\n\};",
+            r"const getDefaultBackendUrl = \(\) => (\{[\s\S]*?\}|'.*?');",
             new_get_default,
             background_js
         )
         
-        with open(background_js_path, 'w') as f:
+        with open(background_js_path, 'w', encoding='utf-8') as f:
             f.write(background_js)
         
-        print(f"✅ Updated {background_js_path} with configured backend URL")
+        print(f"Updated {background_js_path} with configured backend URL")
     except Exception as e:
-        print(f"⚠️  Could not update background.js: {e}")
+        print(f"Warning: Could not update background.js: {e}")
     
     # Update manifest.json with correct host permissions
     host_permissions = [
@@ -131,29 +131,29 @@ if (typeof module !== 'undefined' && module.exports) {{
     try:
         # Check if template exists, use it; otherwise read existing manifest
         if manifest_template_path.exists():
-            with open(manifest_template_path, 'r') as f:
+            with open(manifest_template_path, 'r', encoding='utf-8-sig') as f:
                 manifest_content = json.load(f)
-            print(f"📋 Using manifest template: {manifest_template_path}")
+            print(f"Using manifest template: {manifest_template_path}")
         else:
-            with open(manifest_path, 'r') as f:
+            with open(manifest_path, 'r', encoding='utf-8-sig') as f:
                 manifest_content = json.load(f)
-            print(f"📋 Reading existing manifest: {manifest_path}")
+            print(f"Reading existing manifest: {manifest_path}")
         
         # Update host permissions
         if 'host_permissions' in manifest_content:
             manifest_content['host_permissions'] = host_permissions
         
         # Write updated manifest
-        with open(manifest_path, 'w') as f:
+        with open(manifest_path, 'w', encoding='utf-8') as f:
             json.dump(manifest_content, f, indent=2)
         
-        print(f"✅ Updated {manifest_path}")
+        print(f"Updated {manifest_path}")
         print(f"   Host permissions: {', '.join(host_permissions)}")
     except Exception as e:
-        print(f"❌ Error updating manifest: {e}")
+        print(f"Error updating manifest: {e}")
         sys.exit(1)
     
-    print("\n✨ Extension build complete!")
+    print("\nExtension build complete!")
     print("\nNext steps:")
     print("1. Load the extension in Chrome: chrome://extensions/ > Load unpacked > select extension/")
     print(f"2. The extension will connect to: {config['BACKEND_URL']}")

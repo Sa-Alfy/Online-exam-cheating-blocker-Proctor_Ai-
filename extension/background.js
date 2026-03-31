@@ -5,12 +5,7 @@
 
 // Backend URL is loaded from config.js (auto-generated during build)
 // If EXTENSION_CONFIG is not available, defaults to localhost
-const getDefaultBackendUrl = () => {
-  if (typeof EXTENSION_CONFIG !== 'undefined' && EXTENSION_CONFIG.BACKEND_URL) {
-    return EXTENSION_CONFIG.BACKEND_URL;
-  }
-  return 'http://localhost:5000';
-};
+const getDefaultBackendUrl = () => 'https://saalfy.pythonanywhere.com';
 
 const STORAGE_KEY_BACKEND_URL = 'backendUrl';
 
@@ -201,3 +196,4 @@ chrome.runtime.onSuspend.addListener(() => {
 chrome.runtime.onStartup.addListener(() => {
   console.log('[Proctor AI] Browser started - Service Worker initializing');
 });
+

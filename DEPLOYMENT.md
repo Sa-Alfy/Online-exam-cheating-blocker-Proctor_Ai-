@@ -1,4 +1,4 @@
-# Deployment Guide: PythonAnywhere
+﻿# Deployment Guide: PythonAnywhere
 
 This guide explains how to deploy the Proctor AI project to PythonAnywhere, ensuring the extension correctly connects to your backend.
 
@@ -242,7 +242,7 @@ Before making the repository public on GitHub:
 git status | grep ".env"
 
 # Check for hardcoded URLs
-grep -r "saalfy.pythonanywhere.com" .
+grep -r "your-id.pythonanywhere.com" .
 grep -r "localhost" . --exclude-dir=.git  # Should only be in .env.example or config
 ```
 
@@ -313,3 +313,4 @@ When you make changes to the code:
 - PythonAnywhere Help: https://help.pythonanywhere.com/
 - Flask CORS: https://flask-cors.readthedocs.io/
 - Chrome Extensions: https://developer.chrome.com/docs/extensions/
+

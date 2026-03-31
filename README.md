@@ -36,7 +36,7 @@ Detects and logs:
 - **Responsive Design**: Mobile-friendly accordion layout
 
 ### Security 🔒
-- **Hardcoded Backend URL**: Production server URL cannot be changed by students (no settings UI)
+- **Dynamic Backend URL**: Extension configured via environment variables at build time (no hardcoding)
 - **CORS Configuration**: Restricted cross-origin requests to trusted origins
 - **Rate Limiting**: 60 requests per minute per IP address
 - **Input Validation**: All student data validated before database insertion
@@ -96,11 +96,25 @@ python app.py
 
 ### Load Extension in Chrome
 
+**Before loading the extension, you must build it to inject your configuration:**
+
+```bash
+# Build the extension with your backend URL
+python build-extension.py           # Recommended (Python 3)
+# OR
+node build-extension.js             # If you have Node.js
+
+# This generates:
+# - extension/config.js (with your backend URL)
+# - Updated extension/manifest.json (with correct permissions)
+```
+
+Now load in Chrome:
+
 1. Open `chrome://extensions/`
 2. Toggle "Developer mode" (top-right corner)
 3. Click "Load unpacked"
 4. Select the `extension/` folder
-
 ### Test System
 
 1. **Click extension icon** → Enter student name & ID → Click "▶️ Start Exam"
@@ -114,21 +128,47 @@ For detailed setup, see **[QUICKSTART.md](QUICKSTART.md)**
 
 ## 🌐 Production Deployment
 
-**Live Server**: `https://saalfy.pythonanywhere.com`
+**For detailed step-by-step deployment instructions, see [DEPLOYMENT.md](DEPLOYMENT.md)**
 
-### How It Works:
-1. Backend deployed on PythonAnywhere
-2. Extension hardcoded to production server (cannot be changed)
-3. All violations sent to `https://saalfy.pythonanywhere.com/log`
-4. Dashboard at `https://saalfy.pythonanywhere.com/dashboard`
+### Quick Overview:
 
-### To Deploy Changes:
+The deployment process involves:
+1. **Configure extension** for your production URL
+2. **Build extension** to inject your backend URL
+3. **Security audit** before making repo public
+4. **PythonAnywhere setup** with environment variables
+
+### Configuration
+
 ```bash
-git push origin main          # Push to GitHub
-# Then on PythonAnywhere:
-# 1. Go to Web App settings
-# 2. Click "Reload" button
-# 3. Wait 30 seconds for restart
+# 1. Edit extension/.env with your PythonAnywhere domain
+BACKEND_URL=https://your-username.pythonanywhere.com
+
+# 2. Build the extension
+python build-extension.py
+
+# 3. Load extension in browser
+# chrome://extensions/ > Load unpacked > extension/
+
+# 4. Copy the extension ID and configure backend CORS
+# See DEPLOYMENT.md for complete setup
+```
+
+### Without Hardcoding:
+
+Unlike the old approach, the extension URL is **no longer hardcoded** in the source code. Instead:
+
+- **Before deployment**: Edit `extension/.env` with your target URL
+- **Build process**: `python build-extension.py` injects the URL into:
+  - `extension/config.js` (used by popup and background worker)
+  - `extension/manifest.json` (CORS permissions)
+- **Source code**: Stays generic and safe for public repositories
+
+### Live Server:
+
+The extension is configured to point to your deployment URL after building. Dashboard available at:
+```
+https://your-username.pythonanywhere.com/dashboard
 ```
 
 ---

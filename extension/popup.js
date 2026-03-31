@@ -2,12 +2,9 @@
  * Popup Script - Professional Exam Session Management
  */
 
-// ⚠️ SECURITY: Backend URL is read from chrome.storage.local, NOT hardcoded.
-// This is set once during extension install (see background.js) and can be
-// configured by the deployer. Students cannot bypass proctoring because
-// the content script and background worker enforce exam-active checks.
+// Backend URL is loaded from config.js (auto-generated during build)
+// Falls back to localhost if not configured
 const STORAGE_KEY_BACKEND_URL = 'backendUrl';
-const FALLBACK_BACKEND_URL = 'https://saalfy.pythonanywhere.com';
 
 /**
  * Read the backend URL from chrome.storage.local (same source as background.js)
@@ -17,14 +14,22 @@ async function getBackendUrl() {
     chrome.storage.local.get([STORAGE_KEY_BACKEND_URL], (result) => {
       if (chrome.runtime.lastError) {
         console.warn('[Proctor AI] Could not read backendUrl from storage:', chrome.runtime.lastError);
-        resolve(FALLBACK_BACKEND_URL);
+        // Use config from extension/config.js (generated during build)
+        const fallback = (typeof EXTENSION_CONFIG !== 'undefined' && EXTENSION_CONFIG.BACKEND_URL) 
+          ? EXTENSION_CONFIG.BACKEND_URL 
+          : 'http://localhost:5000';
+        resolve(fallback);
         return;
       }
       const url = result[STORAGE_KEY_BACKEND_URL];
       if (url && typeof url === 'string' && url.trim().length > 0) {
         resolve(url.trim());
       } else {
-        resolve(FALLBACK_BACKEND_URL);
+        // Use config from extension/config.js (generated during build)
+        const fallback = (typeof EXTENSION_CONFIG !== 'undefined' && EXTENSION_CONFIG.BACKEND_URL) 
+          ? EXTENSION_CONFIG.BACKEND_URL 
+          : 'http://localhost:5000';
+        resolve(fallback);
       }
     });
   });

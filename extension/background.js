@@ -3,9 +3,15 @@
  * Professional exam monitoring with session management
  */
 
-// Backend URL MUST be strictly hardcoded for production distribution manually
-// Since students install via ZIP/CRX, they appear as "devs", so we cannot use dynamic checking.
-const DEFAULT_BACKEND_URL = 'https://saalfy.pythonanywhere.com';
+// Backend URL is loaded from config.js (auto-generated during build)
+// If EXTENSION_CONFIG is not available, defaults to localhost
+const getDefaultBackendUrl = () => {
+  if (typeof EXTENSION_CONFIG !== 'undefined' && EXTENSION_CONFIG.BACKEND_URL) {
+    return EXTENSION_CONFIG.BACKEND_URL;
+  }
+  return 'http://localhost:5000';
+};
+
 const STORAGE_KEY_BACKEND_URL = 'backendUrl';
 
 const CONFIG = {
@@ -22,7 +28,7 @@ async function getBackendUrl() {
     chrome.storage.local.get([STORAGE_KEY_BACKEND_URL], (result) => {
       if (chrome.runtime.lastError) {
         console.warn('[Proctor AI] Could not read backendUrl from storage:', chrome.runtime.lastError);
-        resolve(DEFAULT_BACKEND_URL);
+        resolve(getDefaultBackendUrl());
         return;
       }
 
@@ -30,7 +36,7 @@ async function getBackendUrl() {
       if (backendUrl && typeof backendUrl === 'string' && backendUrl.trim().length > 0) {
         resolve(backendUrl.trim());
       } else {
-        resolve(DEFAULT_BACKEND_URL);
+        resolve(getDefaultBackendUrl());
       }
     });
   });
@@ -44,7 +50,7 @@ function ensureDefaultBackendUrl() {
     }
 
     if (!result || !result[STORAGE_KEY_BACKEND_URL]) {
-      chrome.storage.local.set({ [STORAGE_KEY_BACKEND_URL]: DEFAULT_BACKEND_URL });
+      chrome.storage.local.set({ [STORAGE_KEY_BACKEND_URL]: getDefaultBackendUrl() });
     }
   });
 }
@@ -55,7 +61,7 @@ const SUPPORTED_MESSAGE_TYPES = ['LOG_VIOLATION', 'LOG_VIOLATION_V1'];
 chrome.runtime.onInstalled.addListener(() => {
   console.log(`[Proctor AI v${CONFIG.VERSION}] Service Worker: Active`);
   // Force update the backend URL default on install/reload
-  chrome.storage.local.set({ [STORAGE_KEY_BACKEND_URL]: DEFAULT_BACKEND_URL });
+  chrome.storage.local.set({ [STORAGE_KEY_BACKEND_URL]: getDefaultBackendUrl() });
   
   chrome.storage.local.set({ 
     installTime: Date.now(),
